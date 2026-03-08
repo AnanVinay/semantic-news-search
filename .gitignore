@@ -1,0 +1,20 @@
+# Python virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Dataset / large files
+data/
+*.tar.gz
+*.zip
+
+# VSCode settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

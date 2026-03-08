@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Semantic News Search</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Semantic News Search</h1>
+
+      <div class="search-box">
+        <input
+          id="queryInput"
+          placeholder="Ask anything about news topics..."
+        />
+
+        <button onclick="search()">Search</button>
+      </div>
+
+      <div class="cache-stats">
+        <button onclick="getStats()">Cache Stats</button>
+        <button onclick="clearCache()">Clear Cache</button>
+      </div>
+
+      <div id="results"></div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
