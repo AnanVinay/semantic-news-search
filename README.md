@@ -23,27 +23,31 @@ Users can submit natural language queries and retrieve semantically relevant doc
 
 ## System Architecture
 
+## Query Processing Flow
+
 ```mermaid
-flowchart LR
-    A[User Query] --> B[FastAPI Service]
-    B --> C[Query Embedding Model]
-    C --> D[Semantic Cache]
+flowchart TD
+    A[User enters query] --> B[Generate query embedding]
+    B --> C[Check semantic cache]
 
-    D -- Cache Hit --> E[Return Cached Result]
+    C -->|Cache Hit| D[Return cached result]
 
-    D -- Cache Miss --> F[FAISS Vector Search]
-    F --> G[Retrieve Relevant Documents]
-    G --> H[Store Result in Cache]
-    H --> I[Return Response to User
+    C -->|Cache Miss| E[Search FAISS vector database]
+    E --> F[Retrieve top matching documents]
+    F --> G[Store result in semantic cache]
+    G --> H[Return response]
 ```
 
-This diagram illustrates the high-level architecture of the semantic search system.  
-A user query first reaches the FastAPI service, where the query is embedded using the same embedding model used for the corpus.  
-The system then checks the semantic cache to determine whether a similar query has already been processed.
+This flow diagram describes how the system processes each incoming query.
 
-If a similar query exists above the similarity threshold, the cached result is returned immediately.  
-If not, the system performs a vector similarity search using FAISS to retrieve the most relevant documents.  
-The result is then stored in the semantic cache for future reuse.
+1. The user submits a natural language query.
+2. The query is converted into an embedding using the Sentence Transformers model.
+3. The semantic cache checks whether a similar query has already been processed.
+4. If a match above the similarity threshold is found, the cached result is returned.
+5. Otherwise, the system performs a FAISS vector search to retrieve semantically similar documents.
+6. The result is stored in the semantic cache for future reuse.
+
+This mechanism allows the system to avoid redundant computations when users submit semantically similar queries.
 
 ---
 
