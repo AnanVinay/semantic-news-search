@@ -1,8 +1,14 @@
 # Semantic News Search System
 
+![Python](https://img.shields.io/badge/Python-3.9-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-green)
+![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-orange)
+![Docker](https://img.shields.io/badge/Docker-Supported-blue)
+![Status](https://img.shields.io/badge/Project-Complete-brightgreen)
+
 AI & ML Engineer Assignment – Trademarkia
 
-This project implements a semantic search system over the 20 Newsgroups dataset (~20,000 documents) using vector embeddings, fuzzy clustering, and a semantic caching mechanism built from scratch.
+This project implements a semantic search system over the **20 Newsgroups dataset (~20,000 documents)** using vector embeddings, fuzzy clustering, and a semantic caching mechanism built from scratch.
 
 The system demonstrates how semantic understanding can improve search efficiency while reducing redundant computations through intelligent caching.
 
@@ -12,18 +18,40 @@ The system demonstrates how semantic understanding can improve search efficiency
 
 The project implements three core components required in the assignment:
 
-1. Embedding & Vector Database
-2. Fuzzy Clustering of Documents
-3. Semantic Cache Layer
-4. FastAPI Service exposing the system
+1. **Embedding & Vector Database**
+2. **Fuzzy Clustering of Documents**
+3. **Semantic Cache Layer**
+4. **FastAPI Service exposing the system**
 
 Users can submit natural language queries and retrieve semantically relevant documents from the dataset.
 
 ---
 
-## System Architecture
+# System Architecture
 
-## Query Processing Flow
+```mermaid
+flowchart LR
+    A[User Query] --> B[FastAPI Service]
+    B --> C[Query Embedding Model]
+    C --> D[Semantic Cache]
+
+    D -- Cache Hit --> E[Return Cached Result]
+
+    D -- Cache Miss --> F[FAISS Vector Search]
+    F --> G[Retrieve Relevant Documents]
+    G --> H[Store Result in Cache]
+    H --> I[Return Response to User]
+```
+
+This diagram illustrates the high-level architecture of the semantic search system.
+
+A user query first reaches the FastAPI service, where the query is embedded using the same embedding model used for the corpus. The system then checks the semantic cache to determine whether a similar query has already been processed.
+
+If a similar query exists above the similarity threshold, the cached result is returned immediately. Otherwise, the system performs a vector similarity search using FAISS to retrieve relevant documents and stores the result in the cache for future reuse.
+
+---
+
+# Query Processing Flow
 
 ```mermaid
 flowchart TD
@@ -129,9 +157,9 @@ However, documents in the real world often belong to multiple topics simultaneou
 
 Example:
 
-A document discussing gun legislation may belong to politics, firearms, and law.
+A document discussing gun legislation may belong to **politics, firearms, and law**.
 
-Therefore Fuzzy C-Means clustering was used.
+Therefore **Fuzzy C-Means clustering** was used.
 
 Each document receives a probability distribution across clusters.
 
@@ -141,13 +169,13 @@ Cluster 3 → 0.62
 Cluster 7 → 0.28  
 Cluster 1 → 0.10
 
-The API returns the dominant cluster for interpretability.
+The API returns the **dominant cluster** for interpretability.
 
 ---
 
 # Number of Clusters
 
-The system uses 12 clusters.
+The system uses **12 clusters**.
 
 This value was chosen after experimentation:
 
@@ -177,7 +205,7 @@ NASA rocket launch mission
 
 These queries mean the same thing but traditional caches treat them differently.
 
-This project implements a semantic cache from first principles.
+This project implements a **semantic cache from first principles**.
 
 Cache mechanism:
 
@@ -185,45 +213,6 @@ Cache mechanism:
 2. The cache stores embeddings of previous queries
 3. Cosine similarity is computed between queries
 4. If similarity exceeds a threshold, cached results are reused
-
----
-
-## Query Processing Flow
-
-```mermaid
-flowchart TD
-    A[User enters query] --> B[Generate query embedding]
-    B --> C[Check semantic cache]
-
-    C -->|Cache Hit| D[Return cached result]
-
-    C -->|Cache Miss| E[Search FAISS vector database]
-    E --> F[Retrieve top matching documents]
-    F --> G[Store result in semantic cache]
-    G --> H[Return response
-```
-
-This flow diagram describes how the system processes each incoming query.
-
-1. The user submits a natural language query.
-2. The query is converted into an embedding using the Sentence Transformers model.
-3. The semantic cache checks whether a similar query has already been processed.
-4. If a match above the similarity threshold is found, the cached result is returned.
-5. Otherwise, the system performs a FAISS vector search to retrieve semantically similar documents.
-6. The result is stored in the semantic cache for future reuse.
-
-This mechanism allows the system to avoid redundant computations when users submit semantically similar queries.
-
----
-
-## Technologies Used
-
-- **Sentence Transformers** – generating semantic embeddings for documents and queries
-- **FAISS** – high-performance vector similarity search for retrieving semantically similar documents
-- **Fuzzy C-Means (scikit-fuzzy)** – soft clustering that assigns documents probabilistic membership across clusters
-- **FastAPI** – lightweight and high-performance API framework for exposing the semantic search service
-- **NumPy / Pandas** – numerical processing and dataset handling
-- **Docker** – containerization for easy deployment and reproducibility
 
 ---
 
@@ -238,8 +227,18 @@ This threshold balances:
 - precision (avoid unrelated matches)
 - cache reuse (increase hit rate)
 
-Lower thresholds caused incorrect cache matches.  
-Higher thresholds significantly reduced cache effectiveness.
+Lower thresholds caused incorrect cache matches. Higher thresholds significantly reduced cache effectiveness.
+
+---
+
+# Technologies Used
+
+- **Sentence Transformers** – generating semantic embeddings
+- **FAISS** – high-performance vector similarity search
+- **Fuzzy C-Means (scikit-fuzzy)** – soft clustering
+- **FastAPI** – API framework
+- **NumPy / Pandas** – data processing
+- **Docker** – containerization
 
 ---
 
@@ -249,124 +248,116 @@ The system exposes a REST API.
 
 Start the service with:
 
+```
 uvicorn main:app --reload
+```
 
 The API runs on:
 
+```
 http://localhost:8000
+```
 
 ---
 
 # API Endpoints
 
-POST /query
+## POST /query
 
 Request:
 
+```json
 {
-"query": "space shuttle launch"
+  "query": "space shuttle launch"
 }
+```
 
 Response:
 
+```json
 {
-"query": "space shuttle launch",
-"cache_hit": false,
-"matched_query": null,
-"similarity_score": null,
-"result": "...",
-"dominant_cluster": 9
+  "query": "space shuttle launch",
+  "cache_hit": false,
+  "matched_query": null,
+  "similarity_score": null,
+  "result": "...",
+  "dominant_cluster": 9
 }
+```
 
 On cache hit:
 
+```json
 {
-"query": "NASA rocket launch",
-"cache_hit": true,
-"matched_query": "space shuttle launch",
-"similarity_score": 0.89,
-"result": "...",
-"dominant_cluster": 9
+  "query": "NASA rocket launch",
+  "cache_hit": true,
+  "matched_query": "space shuttle launch",
+  "similarity_score": 0.89,
+  "result": "...",
+  "dominant_cluster": 9
 }
+```
 
 ---
 
-GET /cache/stats
+## GET /cache/stats
 
-Returns cache statistics:
-
-{
-"total_entries": 10,
-"hit_count": 4,
-"miss_count": 6,
-"hit_rate": 0.40
-}
+Returns cache statistics.
 
 ---
 
-DELETE /cache
+## DELETE /cache
 
 Clears the cache and resets statistics.
 
 ---
 
-# Frontend Interface
-
-A simple UI allows users to:
-
-- enter natural language queries
-- view search results
-- view cache statistics
-- clear cache
-
-The frontend communicates with the FastAPI backend.
-
----
-
 # Project Structure
 
-semantic-news-search  
-│  
-├── data  
-├── experiments  
-│  
-├── frontend  
-│ ├── index.html  
-│ ├── script.js  
-│ └── style.css  
-│  
-├── models  
-│ ├── embeddings.npy  
-│ ├── documents.pkl  
-│ ├── faiss.index  
-│ └── cluster_model.pkl  
-│  
-├── src  
-│ ├── api  
-│ │ └── routes.py  
-│ │  
-│ ├── cache  
-│ │ └── semantic_cache.py  
-│ │  
-│ ├── clustering  
-│ │ └── fuzzy_cluster.py  
-│ │  
-│ ├── data_loader  
-│ │ └── load_dataset.py  
-│ │  
-│ ├── embeddings  
-│ │ └── embedder.py  
-│ │  
-│ ├── preprocessing  
-│ │ └── clean_text.py  
-│ │  
-│ └── vector_store  
-│ └── faiss_store.py  
-│  
-├── main.py  
-├── requirements.txt  
-├── Dockerfile  
+```
+semantic-news-search
+│
+├── data
+├── experiments
+│
+├── frontend
+│   ├── index.html
+│   ├── script.js
+│   └── style.css
+│
+├── models
+│   ├── embeddings.npy
+│   ├── documents.pkl
+│   ├── faiss.index
+│   └── cluster_model.pkl
+│
+├── src
+│   ├── api
+│   │   └── routes.py
+│   │
+│   ├── cache
+│   │   └── semantic_cache.py
+│   │
+│   ├── clustering
+│   │   └── fuzzy_cluster.py
+│   │
+│   ├── data_loader
+│   │   └── load_dataset.py
+│   │
+│   ├── embeddings
+│   │   └── embedder.py
+│   │
+│   ├── preprocessing
+│   │   └── clean_text.py
+│   │
+│   └── vector_store
+│       └── faiss_store.py
+│
+├── main.py
+├── requirements.txt
+├── Dockerfile
 └── README.md
+```
 
 ---
 
@@ -374,23 +365,33 @@ semantic-news-search
 
 Create virtual environment:
 
+```
 python -m venv venv
+```
 
-Activate environment (Windows):
+Activate environment:
 
+```
 venv\Scripts\activate
+```
 
 Install dependencies:
 
+```
 pip install -r requirements.txt
+```
 
-Start the server:
+Start server:
 
+```
 uvicorn main:app --reload
+```
 
-Open API documentation:
+Open API docs:
 
+```
 http://localhost:8000/docs
+```
 
 ---
 
@@ -398,15 +399,21 @@ http://localhost:8000/docs
 
 Build container:
 
+```
 docker build -t semantic-news-search .
+```
 
 Run container:
 
+```
 docker run -p 8000:8000 semantic-news-search
+```
 
 Then open:
 
+```
 http://localhost:8000
+```
 
 ---
 
@@ -426,13 +433,3 @@ http://localhost:8000
 # Conclusion
 
 This project demonstrates how semantic embeddings, clustering, and intelligent caching can be combined to build an efficient semantic search system capable of understanding natural language queries and reducing redundant computation.
-
----
-
-# Semantic News Search System
-
-![Python](https://img.shields.io/badge/Python-3.9-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-API-green)
-![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-orange)
-![Docker](https://img.shields.io/badge/Docker-Supported-blue)
-![Status](https://img.shields.io/badge/Project-Complete-brightgreen)
