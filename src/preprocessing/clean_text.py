@@ -2,10 +2,7 @@ import re
 
 
 def remove_headers(text):
-    """
-    Remove email-style headers such as From:, Subject:, Organization:
-    """
-
+    
     parts = text.split("\n\n", 1)
 
     if len(parts) > 1:
@@ -15,9 +12,7 @@ def remove_headers(text):
 
 
 def remove_quotes(text):
-    """
-    Remove quoted replies starting with >
-    """
+   
 
     lines = text.split("\n")
 
@@ -31,9 +26,7 @@ def remove_quotes(text):
 
 
 def clean_text(text):
-    """
-    Full cleaning pipeline for Usenet articles
-    """
+    
 
     text = remove_headers(text)
 

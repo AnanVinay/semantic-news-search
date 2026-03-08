@@ -5,11 +5,7 @@ import numpy as np
 class Embedder:
 
     def __init__(self):
-        """
-        Initialize embedding model.
-        We use all-MiniLM-L6-v2 because it is lightweight
-        and performs very well for semantic search tasks.
-        """
+        
 
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
 

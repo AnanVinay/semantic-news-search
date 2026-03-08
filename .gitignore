@@ -7,14 +7,24 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Dataset / large files
-data/
-*.tar.gz
-*.zip
-
-# VSCode settings
+# IDE settings
 .vscode/
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Python build files
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

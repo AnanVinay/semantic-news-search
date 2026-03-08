@@ -4,16 +4,15 @@ import faiss
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.vector_store.faiss_store import FaissVectorStore
 from src.embeddings.embedder import Embedder
 from src.cache.semantic_cache import SemanticCache
 
 print("Loading precomputed models...")
-
-# -------------------------
-# Load stored artifacts
-# -------------------------
 
 with open("models/documents.pkl", "rb") as f:
     documents = pickle.load(f)
@@ -25,10 +24,6 @@ index = faiss.read_index("models/faiss.index")
 with open("models/cluster_model.pkl", "rb") as f:
     clusterer = pickle.load(f)
 
-# -------------------------
-# Initialize components
-# -------------------------
-
 vector_store = FaissVectorStore(dimension=384)
 vector_store.index = index
 vector_store.documents = documents
@@ -39,21 +34,30 @@ cache = SemanticCache(threshold=0.75)
 
 print("System ready!")
 
+app = FastAPI(title="Semantic News Search API")
 
-# -------------------------
-# FastAPI app
-# -------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-app = FastAPI(title="Semantic Search API")
+# Serve frontend static files
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    with open("frontend/index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 
 class QueryRequest(BaseModel):
     query: str
 
 
-# -------------------------
-# Query endpoint
-# -------------------------
 
 @app.post("/query")
 def query_endpoint(request: QueryRequest):
@@ -62,14 +66,12 @@ def query_endpoint(request: QueryRequest):
 
     query_embedding = embedder.encode_query(query)
 
-    # detect cluster
     cluster_id = clusterer.model.predict(
         clusterer.pca.transform(
             clusterer.scaler.transform(query_embedding)
         )
     )[0]
 
-    # check cache
     hit, entry, score = cache.lookup(query_embedding)
 
     if hit:
@@ -82,7 +84,6 @@ def query_endpoint(request: QueryRequest):
             "dominant_cluster": int(cluster_id)
         }
 
-    # cache miss → search
     results = vector_store.search(query_embedding, top_k=3)
 
     result_text = "\n---\n".join(results)
@@ -99,18 +100,12 @@ def query_endpoint(request: QueryRequest):
     }
 
 
-# -------------------------
-# Cache stats
-# -------------------------
 
 @app.get("/cache/stats")
 def cache_stats():
     return cache.stats()
 
 
-# -------------------------
-# Clear cache
-# -------------------------
 
 @app.delete("/cache")
 def clear_cache():
