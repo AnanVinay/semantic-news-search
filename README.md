@@ -21,13 +21,29 @@ Users can submit natural language queries and retrieve semantically relevant doc
 
 ---
 
-# Architecture
+## System Architecture
 
-User Query  
-→ Embedding Model (Sentence Transformers)  
-→ Semantic Cache  
-→ (Cache Hit → Return Cached Result)  
-→ (Cache Miss → FAISS Vector Search → Retrieve Documents → Store in Cache → Return Result)
+```mermaid
+flowchart LR
+    A[User Query] --> B[FastAPI Service]
+    B --> C[Query Embedding Model]
+    C --> D[Semantic Cache]
+
+    D -- Cache Hit --> E[Return Cached Result]
+
+    D -- Cache Miss --> F[FAISS Vector Search]
+    F --> G[Retrieve Relevant Documents]
+    G --> H[Store Result in Cache]
+    H --> I[Return Response to User
+```
+
+This diagram illustrates the high-level architecture of the semantic search system.  
+A user query first reaches the FastAPI service, where the query is embedded using the same embedding model used for the corpus.  
+The system then checks the semantic cache to determine whether a similar query has already been processed.
+
+If a similar query exists above the similarity threshold, the cached result is returned immediately.  
+If not, the system performs a vector similarity search using FAISS to retrieve the most relevant documents.  
+The result is then stored in the semantic cache for future reuse.
 
 ---
 
@@ -165,6 +181,45 @@ Cache mechanism:
 2. The cache stores embeddings of previous queries
 3. Cosine similarity is computed between queries
 4. If similarity exceeds a threshold, cached results are reused
+
+---
+
+## Query Processing Flow
+
+```mermaid
+flowchart TD
+    A[User enters query] --> B[Generate query embedding]
+    B --> C[Check semantic cache]
+
+    C -->|Cache Hit| D[Return cached result]
+
+    C -->|Cache Miss| E[Search FAISS vector database]
+    E --> F[Retrieve top matching documents]
+    F --> G[Store result in semantic cache]
+    G --> H[Return response
+```
+
+This flow diagram describes how the system processes each incoming query.
+
+1. The user submits a natural language query.
+2. The query is converted into an embedding using the Sentence Transformers model.
+3. The semantic cache checks whether a similar query has already been processed.
+4. If a match above the similarity threshold is found, the cached result is returned.
+5. Otherwise, the system performs a FAISS vector search to retrieve semantically similar documents.
+6. The result is stored in the semantic cache for future reuse.
+
+This mechanism allows the system to avoid redundant computations when users submit semantically similar queries.
+
+---
+
+## Technologies Used
+
+- **Sentence Transformers** – generating semantic embeddings for documents and queries
+- **FAISS** – high-performance vector similarity search for retrieving semantically similar documents
+- **Fuzzy C-Means (scikit-fuzzy)** – soft clustering that assigns documents probabilistic membership across clusters
+- **FastAPI** – lightweight and high-performance API framework for exposing the semantic search service
+- **NumPy / Pandas** – numerical processing and dataset handling
+- **Docker** – containerization for easy deployment and reproducibility
 
 ---
 
@@ -335,7 +390,7 @@ http://localhost:8000/docs
 
 ---
 
-# Docker (Bonus)
+# Docker
 
 Build container:
 
@@ -367,3 +422,13 @@ http://localhost:8000
 # Conclusion
 
 This project demonstrates how semantic embeddings, clustering, and intelligent caching can be combined to build an efficient semantic search system capable of understanding natural language queries and reducing redundant computation.
+
+---
+
+# Semantic News Search System
+
+![Python](https://img.shields.io/badge/Python-3.9-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-green)
+![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-orange)
+![Docker](https://img.shields.io/badge/Docker-Supported-blue)
+![Status](https://img.shields.io/badge/Project-Complete-brightgreen)
